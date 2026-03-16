@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
 import type { House, System, Document, DocumentType } from '@/types/database'
 import { DOCUMENT_TYPE_LABELS } from '@/types/database'
 import { formatDate, cn } from '@/lib/utils'
@@ -32,7 +32,7 @@ function formatFileSize(bytes: number | null): string {
 }
 
 export default function DocumentsPage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [houses, setHouses] = useState<House[]>([])
@@ -69,12 +69,20 @@ export default function DocumentsPage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      setHouses([])
+      setSystems([])
+      setDocuments([])
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
-    const { data: housesData } = await supabase
+    const { data: housesData } = await supabase!
       .from('houses')
       .select('*')
       .eq('user_id', user.id)
@@ -91,12 +99,12 @@ export default function DocumentsPage() {
     }
 
     const [documentsRes, systemsRes] = await Promise.all([
-      supabase
+      supabase!
         .from('documents')
         .select('*, systems(name), houses(name)')
         .in('house_id', houseIds)
         .order('created_at', { ascending: false }),
-      supabase.from('systems').select('*').in('house_id', houseIds),
+      supabase!.from('systems').select('*').in('house_id', houseIds),
     ])
 
     setHouses(housesList)
@@ -132,13 +140,14 @@ export default function DocumentsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setModalOpen(false); return }
     if (!selectedFile) return
 
     setSubmitting(true)
 
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) {
       setSubmitting(false)
       return
@@ -146,7 +155,7 @@ export default function DocumentsPage() {
 
     const fileName = `${user.id}/${Date.now()}_${selectedFile.name}`
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase!.storage
       .from('documents')
       .upload(fileName, selectedFile)
 
@@ -156,7 +165,7 @@ export default function DocumentsPage() {
       return
     }
 
-    const { error } = await supabase.from('documents').insert({
+    const { error } = await supabase!.from('documents').insert({
       house_id: formData.house_id,
       system_id: formData.system_id || null,
       name: formData.name || selectedFile.name,
@@ -178,7 +187,8 @@ export default function DocumentsPage() {
   }
 
   async function handleDownload(doc: DocumentWithRelations) {
-    const { data } = await supabase.storage
+    if (isDemo()) return
+    const { data } = await supabase!.storage
       .from('documents')
       .createSignedUrl(doc.file_url, 3600)
 
@@ -188,9 +198,10 @@ export default function DocumentsPage() {
   }
 
   async function handleDelete(doc: DocumentWithRelations) {
+    if (isDemo()) return
     if (!confirm('Удалить документ? Это действие нельзя отменить.')) return
 
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await supabase!.storage
       .from('documents')
       .remove([doc.file_url])
 
@@ -199,7 +210,7 @@ export default function DocumentsPage() {
       return
     }
 
-    const { error } = await supabase
+    const { error } = await supabase!
       .from('documents')
       .delete()
       .eq('id', doc.id)

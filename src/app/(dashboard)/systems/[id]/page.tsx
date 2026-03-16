@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_SYSTEMS, DEMO_HOUSES, DEMO_MAINTENANCE, DEMO_MASTERS, DEMO_EXPENSES } from '@/lib/demo-data'
 import type {
   System,
   SystemCategory,
@@ -47,7 +48,7 @@ export default function SystemDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [system, setSystem] = useState<SystemWithHouse | null>(null)
   const [logs, setLogs] = useState<MaintenanceLogWithMaster[]>([])
@@ -90,21 +91,49 @@ export default function SystemDetailPage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      const demoSystem = DEMO_SYSTEMS.find(s => s.id === id)
+      if (demoSystem) {
+        const house = DEMO_HOUSES.find(h => h.id === demoSystem.house_id)
+        setSystem({ ...demoSystem, houses: house ? { name: house.name } : null } as SystemWithHouse)
+        setEditForm({
+          category: demoSystem.category,
+          name: demoSystem.name,
+          model: demoSystem.model || '',
+          installed_at: demoSystem.installed_at || '',
+          last_maintenance_at: demoSystem.last_maintenance_at || '',
+          maintenance_interval_months: demoSystem.maintenance_interval_months?.toString() || '',
+          status: demoSystem.status,
+          notes: demoSystem.notes || '',
+        })
+        const demoLogs = DEMO_MAINTENANCE.filter(m => m.system_id === id).map(m => ({
+          ...m,
+          masters: DEMO_MASTERS.find(ma => ma.id === m.master_id) ? { name: DEMO_MASTERS.find(ma => ma.id === m.master_id)!.name } : null,
+        })) as MaintenanceLogWithMaster[]
+        setLogs(demoLogs)
+        setExpenses(DEMO_EXPENSES.filter(e => e.system_id === id))
+        setMasters(DEMO_MASTERS)
+      }
+      setDocuments([])
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
     const [systemRes, logsRes, documentsRes, expensesRes, mastersRes] = await Promise.all([
-      supabase.from('systems').select('*, houses(name)').eq('id', id).single(),
-      supabase
+      supabase!.from('systems').select('*, houses(name)').eq('id', id).single(),
+      supabase!
         .from('maintenance_logs')
         .select('*, masters(name)')
         .eq('system_id', id)
         .order('date', { ascending: false }),
-      supabase.from('documents').select('*').eq('system_id', id),
-      supabase.from('expenses').select('*').eq('system_id', id),
-      supabase.from('masters').select('*').eq('user_id', user.id),
+      supabase!.from('documents').select('*').eq('system_id', id),
+      supabase!.from('expenses').select('*').eq('system_id', id),
+      supabase!.from('masters').select('*').eq('user_id', user.id),
     ])
 
     if (systemRes.data) {
@@ -131,6 +160,7 @@ export default function SystemDetailPage() {
 
   async function handleEditSystem(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setEditOpen(false); return }
     if (!system) return
     setSaving(true)
 
@@ -145,7 +175,7 @@ export default function SystemDetailPage() {
       nextMaintenance = d.toISOString()
     }
 
-    const { error } = await supabase
+    const { error } = await supabase!
       .from('systems')
       .update({
         category: editForm.category,
@@ -168,10 +198,11 @@ export default function SystemDetailPage() {
   }
 
   async function handleDeleteSystem() {
+    if (isDemo()) return
     if (!system) return
     setSaving(true)
 
-    const { error } = await supabase.from('systems').delete().eq('id', system.id)
+    const { error } = await supabase!.from('systems').delete().eq('id', system.id)
 
     setSaving(false)
     if (!error) {
@@ -181,13 +212,14 @@ export default function SystemDetailPage() {
 
   async function handleAddLog(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setAddLogOpen(false); return }
     if (!system) return
     setSaving(true)
 
     const cost = logForm.cost ? parseFloat(logForm.cost) : null
 
     // Create maintenance log
-    const { data: newLog, error: logError } = await supabase
+    const { data: newLog, error: logError } = await supabase!
       .from('maintenance_logs')
       .insert({
         house_id: system.house_id,
@@ -217,7 +249,7 @@ export default function SystemDetailPage() {
         nextMaintenance = d.toISOString()
       }
 
-      await supabase
+      await supabase!
         .from('systems')
         .update({
           last_maintenance_at: logForm.date,
@@ -228,7 +260,7 @@ export default function SystemDetailPage() {
 
     // Create expense record if cost is present
     if (cost && newLog) {
-      await supabase.from('expenses').insert({
+      await supabase!.from('expenses').insert({
         house_id: system.house_id,
         system_id: system.id,
         maintenance_log_id: newLog.id,

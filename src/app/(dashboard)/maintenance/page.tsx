@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_HOUSES, DEMO_SYSTEMS, DEMO_MASTERS, DEMO_MAINTENANCE } from '@/lib/demo-data'
 import type { House, System, Master, MaintenanceLog, MaintenanceType } from '@/types/database'
 import { MAINTENANCE_TYPE_LABELS } from '@/types/database'
 import { formatDate, formatCurrency } from '@/lib/utils'
@@ -33,7 +34,7 @@ interface LogWithRelations extends MaintenanceLog {
 }
 
 export default function MaintenancePage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [houses, setHouses] = useState<House[]>([])
   const [systems, setSystems] = useState<System[]>([])
@@ -77,16 +78,31 @@ export default function MaintenancePage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      setHouses(DEMO_HOUSES)
+      setSystems(DEMO_SYSTEMS)
+      setMasters(DEMO_MASTERS)
+      const demoLogs = DEMO_MAINTENANCE.map(m => ({
+        ...m,
+        systems: DEMO_SYSTEMS.find(s => s.id === m.system_id) ? { name: DEMO_SYSTEMS.find(s => s.id === m.system_id)!.name, house_id: m.house_id } : null,
+        houses: DEMO_HOUSES.find(h => h.id === m.house_id) ? { name: DEMO_HOUSES.find(h => h.id === m.house_id)!.name } : null,
+        masters: DEMO_MASTERS.find(ma => ma.id === m.master_id) ? { name: DEMO_MASTERS.find(ma => ma.id === m.master_id)!.name } : null,
+      })) as LogWithRelations[]
+      setLogs(demoLogs)
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
     const [housesRes, systemsRes, mastersRes, logsRes] = await Promise.all([
-      supabase.from('houses').select('*').eq('user_id', user.id),
-      supabase.from('systems').select('*'),
-      supabase.from('masters').select('*').eq('user_id', user.id),
-      supabase
+      supabase!.from('houses').select('*').eq('user_id', user.id),
+      supabase!.from('systems').select('*'),
+      supabase!.from('masters').select('*').eq('user_id', user.id),
+      supabase!
         .from('maintenance_logs')
         .select('*, systems(name, house_id), houses(name), masters(name)')
         .order('date', { ascending: false }),
@@ -139,16 +155,17 @@ export default function MaintenancePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setModalOpen(false); return }
     setSubmitting(true)
 
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
     const cost = formData.cost ? Number(formData.cost) : null
 
-    const { data: newLog, error } = await supabase
+    const { data: newLog, error } = await supabase!
       .from('maintenance_logs')
       .insert({
         house_id: formData.house_id,
@@ -165,7 +182,7 @@ export default function MaintenancePage() {
     if (!error && newLog) {
       // If cost > 0, also insert an expense
       if (cost && cost > 0) {
-        await supabase.from('expenses').insert({
+        await supabase!.from('expenses').insert({
           house_id: formData.house_id,
           system_id: formData.system_id || null,
           maintenance_log_id: newLog.id,
@@ -177,7 +194,7 @@ export default function MaintenancePage() {
 
       // Update system.last_maintenance_at if a system was selected
       if (formData.system_id) {
-        await supabase
+        await supabase!
           .from('systems')
           .update({ last_maintenance_at: formData.date })
           .eq('id', formData.system_id)

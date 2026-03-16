@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Settings, Users, Mail, Trash2, Shield } from 'lucide-react'
 
@@ -18,7 +18,7 @@ interface HouseMember {
 }
 
 export default function SettingsPage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,12 +55,19 @@ export default function SettingsPage() {
   async function loadInitialData() {
     setLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
+    if (isDemo()) {
+      setUserEmail('demo@example.com')
+      setHouses([])
+      setLoading(false)
+      return
+    }
+
+    const { data: { user } } = await supabase!.auth.getUser()
     if (!user) return
 
     setUserEmail(user.email ?? null)
 
-    const { data: housesData } = await supabase
+    const { data: housesData } = await supabase!
       .from('houses')
       .select('id, name')
       .eq('user_id', user.id)
@@ -78,7 +85,7 @@ export default function SettingsPage() {
 
   async function loadMembers(houseId: string) {
     setLoadingMembers(true)
-    const { data } = await supabase
+    const { data } = await supabase!
       .from('house_members')
       .select('*')
       .eq('house_id', houseId)
@@ -92,7 +99,7 @@ export default function SettingsPage() {
     setUpdatingPassword(true)
     setPasswordMessage(null)
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    const { error } = await supabase!.auth.updateUser({ password: newPassword })
 
     if (error) {
       setPasswordMessage({ type: 'error', text: error.message })
@@ -111,7 +118,7 @@ export default function SettingsPage() {
     setInviting(true)
     setInviteMessage(null)
 
-    const { error } = await supabase.from('house_members').insert({
+    const { error } = await supabase!.from('house_members').insert({
       house_id: selectedHouseId,
       email: inviteEmail,
       role: inviteRole,
@@ -132,7 +139,7 @@ export default function SettingsPage() {
   async function handleRemoveMember(memberId: string) {
     if (!selectedHouseId) return
 
-    const { error } = await supabase
+    const { error } = await supabase!
       .from('house_members')
       .delete()
       .eq('id', memberId)

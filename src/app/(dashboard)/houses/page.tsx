@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_HOUSES } from '@/lib/demo-data'
 import type { House, HouseType } from '@/types/database'
 import { HOUSE_TYPE_LABELS } from '@/types/database'
 import EmptyState from '@/components/EmptyState'
@@ -11,7 +12,7 @@ import { Home, Plus, MapPin } from 'lucide-react'
 
 export default function HousesPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [houses, setHouses] = useState<House[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,7 +34,12 @@ export default function HousesPage() {
 
   async function loadHouses() {
     setLoading(true)
-    const { data } = await supabase
+    if (isDemo()) {
+      setHouses(DEMO_HOUSES)
+      setLoading(false)
+      return
+    }
+    const { data } = await supabase!
       .from('houses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -44,12 +50,16 @@ export default function HousesPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) {
+      setModalOpen(false)
+      return
+    }
     setSubmitting(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase!.auth.getUser()
     if (!user) return
 
-    const { error } = await supabase.from('houses').insert({
+    const { error } = await supabase!.from('houses').insert({
       name: formData.name,
       address: formData.address || null,
       city: formData.city || null,
@@ -78,6 +88,12 @@ export default function HousesPage() {
 
   return (
     <div>
+      {isDemo() && (
+        <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          Демо-режим — данные показаны для примера. Подключите Supabase для полной функциональности.
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Мои дома</h1>
         <button onClick={() => setModalOpen(true)} className="btn-primary inline-flex items-center gap-2">

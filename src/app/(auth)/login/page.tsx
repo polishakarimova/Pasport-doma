@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { createClient, isDemo } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +14,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDemo()) {
+      router.push('/houses');
+      return;
+    }
     setError('');
     setLoading(true);
 

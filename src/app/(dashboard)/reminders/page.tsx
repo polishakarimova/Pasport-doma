@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_HOUSES, DEMO_SYSTEMS, DEMO_REMINDERS } from '@/lib/demo-data'
 import type { Reminder } from '@/types/database'
 import { formatDate, getReminderCategory, cn } from '@/lib/utils'
 import Modal from '@/components/Modal'
@@ -70,7 +71,7 @@ const CATEGORY_CONFIG = {
 type Category = keyof typeof CATEGORY_CONFIG
 
 export default function RemindersPage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [houses, setHouses] = useState<House[]>([])
   const [systems, setSystems] = useState<System[]>([])
@@ -101,12 +102,25 @@ export default function RemindersPage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      setHouses(DEMO_HOUSES.map(h => ({ id: h.id, name: h.name })))
+      setSystems(DEMO_SYSTEMS.map(s => ({ id: s.id, house_id: s.house_id, name: s.name })))
+      const demoReminders = DEMO_REMINDERS.map(r => ({
+        ...r,
+        systems: DEMO_SYSTEMS.find(s => s.id === r.system_id) ? { name: DEMO_SYSTEMS.find(s => s.id === r.system_id)!.name } : null,
+        houses: DEMO_HOUSES.find(h => h.id === r.house_id) ? { name: DEMO_HOUSES.find(h => h.id === r.house_id)!.name } : null,
+      })) as ReminderWithRelations[]
+      setReminders(demoReminders)
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
-    const { data: housesData } = await supabase
+    const { data: housesData } = await supabase!
       .from('houses')
       .select('*')
       .eq('user_id', user.id)
@@ -124,13 +138,13 @@ export default function RemindersPage() {
     const houseIds = housesList.map((h) => h.id)
 
     const [remindersRes, systemsRes] = await Promise.all([
-      supabase
+      supabase!
         .from('reminders')
         .select('*, systems(name), houses(name)')
         .in('house_id', houseIds)
         .eq('completed', false)
         .order('due_date'),
-      supabase.from('systems').select('*').in('house_id', houseIds),
+      supabase!.from('systems').select('*').in('house_id', houseIds),
     ])
 
     setReminders((remindersRes.data as ReminderWithRelations[]) || [])
@@ -157,7 +171,8 @@ export default function RemindersPage() {
     : []
 
   async function handleComplete(reminderId: string) {
-    const { error } = await supabase
+    if (isDemo()) { setReminders((prev) => prev.filter((r) => r.id !== reminderId)); return }
+    const { error } = await supabase!
       .from('reminders')
       .update({ completed: true })
       .eq('id', reminderId)
@@ -169,9 +184,10 @@ export default function RemindersPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setModalOpen(false); return }
     setSubmitting(true)
 
-    const { error } = await supabase.from('reminders').insert({
+    const { error } = await supabase!.from('reminders').insert({
       house_id: formData.house_id,
       system_id: formData.system_id || null,
       title: formData.title,

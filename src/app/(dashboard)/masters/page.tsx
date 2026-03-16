@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_MASTERS } from '@/lib/demo-data'
 import type { Master, MaintenanceType } from '@/types/database'
 import { MAINTENANCE_TYPE_LABELS } from '@/types/database'
 import { formatDate, formatCurrency } from '@/lib/utils'
@@ -28,7 +29,7 @@ const MAINTENANCE_TYPE_COLORS: Record<MaintenanceType, string> = {
 }
 
 export default function MastersPage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [masters, setMasters] = useState<Master[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,12 +59,18 @@ export default function MastersPage() {
   async function loadMasters() {
     setLoading(true)
 
+    if (isDemo()) {
+      setMasters(DEMO_MASTERS)
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
-    const { data: masters } = await supabase
+    const { data: masters } = await supabase!
       .from('masters')
       .select('*')
       .eq('user_id', user.id)
@@ -75,10 +82,11 @@ export default function MastersPage() {
 
   async function loadLogs(masterId: string) {
     if (logsMap[masterId]) return
+    if (isDemo()) { setLogsMap((prev) => ({ ...prev, [masterId]: [] })); return }
 
     setLogsLoading(masterId)
 
-    const { data: logs } = await supabase
+    const { data: logs } = await supabase!
       .from('maintenance_logs')
       .select('*, systems(name), houses(name)')
       .eq('master_id', masterId)
@@ -119,11 +127,12 @@ export default function MastersPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setModalOpen(false); return }
     setSubmitting(true)
 
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
     const payload = {
@@ -134,7 +143,7 @@ export default function MastersPage() {
     }
 
     if (editingMaster) {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('masters')
         .update(payload)
         .eq('id', editingMaster.id)
@@ -145,7 +154,7 @@ export default function MastersPage() {
         loadMasters()
       }
     } else {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('masters')
         .insert({ ...payload, user_id: user.id })
 
@@ -160,10 +169,11 @@ export default function MastersPage() {
 
   async function handleDelete(masterId: string) {
     if (!confirm('Удалить мастера? Это действие нельзя отменить.')) return
+    if (isDemo()) return
 
     setDeleting(true)
 
-    const { error } = await supabase
+    const { error } = await supabase!
       .from('masters')
       .delete()
       .eq('id', masterId)

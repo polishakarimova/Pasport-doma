@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
 import type { House, System, Expense, SystemCategory } from '@/types/database'
 import { SYSTEM_CATEGORY_LABELS } from '@/types/database'
+import { DEMO_HOUSES, DEMO_SYSTEMS, DEMO_EXPENSES } from '@/lib/demo-data'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
@@ -24,7 +25,7 @@ interface ExpenseWithRelations extends Expense {
 }
 
 export default function ExpensesPage() {
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [houses, setHouses] = useState<House[]>([])
   const [systems, setSystems] = useState<System[]>([])
@@ -60,12 +61,25 @@ export default function ExpensesPage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      setHouses(DEMO_HOUSES)
+      setSystems(DEMO_SYSTEMS)
+      const demoExpenses = DEMO_EXPENSES.map(e => ({
+        ...e,
+        systems: DEMO_SYSTEMS.find(s => s.id === e.system_id) ? { name: DEMO_SYSTEMS.find(s => s.id === e.system_id)!.name, category: DEMO_SYSTEMS.find(s => s.id === e.system_id)!.category } : null,
+        houses: DEMO_HOUSES.find(h => h.id === e.house_id) ? { name: DEMO_HOUSES.find(h => h.id === e.house_id)!.name } : null,
+      })) as ExpenseWithRelations[]
+      setExpenses(demoExpenses)
+      setLoading(false)
+      return
+    }
+
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase!.auth.getUser()
     if (!user) return
 
-    const { data: housesData } = await supabase
+    const { data: housesData } = await supabase!
       .from('houses')
       .select('*')
       .eq('user_id', user.id)
@@ -82,12 +96,12 @@ export default function ExpensesPage() {
     }
 
     const [expensesRes, systemsRes] = await Promise.all([
-      supabase
+      supabase!
         .from('expenses')
         .select('*, systems(name, category), houses(name)')
         .in('house_id', houseIds)
         .order('date', { ascending: false }),
-      supabase.from('systems').select('*').in('house_id', houseIds),
+      supabase!.from('systems').select('*').in('house_id', houseIds),
     ])
 
     setHouses(housesList)
@@ -157,9 +171,10 @@ export default function ExpensesPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isDemo()) { setModalOpen(false); return }
     setSubmitting(true)
 
-    const { error } = await supabase.from('expenses').insert({
+    const { error } = await supabase!.from('expenses').insert({
       house_id: formData.house_id,
       system_id: formData.system_id || null,
       date: formData.date,

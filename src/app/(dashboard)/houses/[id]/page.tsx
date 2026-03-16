@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
+import { DEMO_HOUSES, DEMO_SYSTEMS, DEMO_MAINTENANCE, DEMO_REMINDERS, DEMO_EXPENSES } from '@/lib/demo-data'
 import type { House, System, MaintenanceLog, Reminder, Expense } from '@/types/database'
 import { SYSTEM_CATEGORY_LABELS, MAINTENANCE_TYPE_LABELS } from '@/types/database'
 import { formatDate, formatCurrency, calculateHealthStatus } from '@/lib/utils'
@@ -36,7 +37,7 @@ export default function HouseDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const supabase = createClient()
+  const supabase = isDemo() ? null : createClient()
 
   const [house, setHouse] = useState<House | null>(null)
   const [systems, setSystems] = useState<System[]>([])
@@ -52,23 +53,43 @@ export default function HouseDetailPage() {
   async function loadData() {
     setLoading(true)
 
+    if (isDemo()) {
+      const demoHouse = DEMO_HOUSES.find(h => h.id === id) || null
+      setHouse(demoHouse)
+      const demoSystems = DEMO_SYSTEMS.filter(s => s.house_id === id)
+      setSystems(demoSystems)
+      const demoLogs = DEMO_MAINTENANCE.filter(m => m.house_id === id).map(m => ({
+        ...m,
+        systems: DEMO_SYSTEMS.find(s => s.id === m.system_id) ? { name: DEMO_SYSTEMS.find(s => s.id === m.system_id)!.name } : null,
+      }))
+      setLogs(demoLogs)
+      const demoReminders = DEMO_REMINDERS.filter(r => r.house_id === id).map(r => ({
+        ...r,
+        systems: DEMO_SYSTEMS.find(s => s.id === r.system_id) ? { name: DEMO_SYSTEMS.find(s => s.id === r.system_id)!.name } : null,
+      }))
+      setReminders(demoReminders)
+      setExpenses(DEMO_EXPENSES.filter(e => e.house_id === id))
+      setLoading(false)
+      return
+    }
+
     const [houseRes, systemsRes, logsRes, remindersRes, expensesRes] = await Promise.all([
-      supabase.from('houses').select('*').eq('id', id).single(),
-      supabase.from('systems').select('*').eq('house_id', id),
-      supabase
+      supabase!.from('houses').select('*').eq('id', id).single(),
+      supabase!.from('systems').select('*').eq('house_id', id),
+      supabase!
         .from('maintenance_logs')
         .select('*, systems(name)')
         .eq('house_id', id)
         .order('date', { ascending: false })
         .limit(5),
-      supabase
+      supabase!
         .from('reminders')
         .select('*, systems(name)')
         .eq('house_id', id)
         .eq('completed', false)
         .order('due_date')
         .limit(5),
-      supabase.from('expenses').select('*').eq('house_id', id),
+      supabase!.from('expenses').select('*').eq('house_id', id),
     ])
 
     setHouse(houseRes.data)

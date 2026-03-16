@@ -16,7 +16,7 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isDemo } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -36,6 +36,10 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogout = async () => {
+    if (isDemo()) {
+      router.push('/login')
+      return
+    }
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
