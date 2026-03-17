@@ -122,7 +122,7 @@ export default function HouseDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -177,28 +177,28 @@ export default function HouseDetailPage() {
           href={`/houses/${id}/systems/new`}
           className="card p-4 text-center hover:shadow-md transition-shadow"
         >
-          <Settings className="w-5 h-5 text-blue-600 mx-auto mb-2" />
+          <Settings className="w-5 h-5 text-brand-600 mx-auto mb-2" />
           <span className="text-sm font-medium text-gray-700">Добавить систему</span>
         </Link>
         <Link
           href={`/houses/${id}/maintenance/new`}
           className="card p-4 text-center hover:shadow-md transition-shadow"
         >
-          <Wrench className="w-5 h-5 text-green-600 mx-auto mb-2" />
+          <Wrench className="w-5 h-5 text-brand-600 mx-auto mb-2" />
           <span className="text-sm font-medium text-gray-700">Добавить работу</span>
         </Link>
         <Link
           href={`/houses/${id}/documents/new`}
           className="card p-4 text-center hover:shadow-md transition-shadow"
         >
-          <FileText className="w-5 h-5 text-purple-600 mx-auto mb-2" />
+          <FileText className="w-5 h-5 text-brand-600 mx-auto mb-2" />
           <span className="text-sm font-medium text-gray-700">Добавить документ</span>
         </Link>
         <Link
           href={`/houses/${id}/masters/new`}
           className="card p-4 text-center hover:shadow-md transition-shadow"
         >
-          <Users className="w-5 h-5 text-orange-600 mx-auto mb-2" />
+          <Users className="w-5 h-5 text-brand-600 mx-auto mb-2" />
           <span className="text-sm font-medium text-gray-700">Добавить мастера</span>
         </Link>
       </div>

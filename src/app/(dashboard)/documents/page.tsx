@@ -223,7 +223,7 @@ export default function DocumentsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -355,7 +355,7 @@ export default function DocumentsPage() {
               <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
                 <button
                   onClick={() => handleDownload(doc)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Скачать
@@ -457,7 +457,7 @@ export default function DocumentsPage() {
               className={cn(
                 'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
                 selectedFile
-                  ? 'border-blue-300 bg-blue-50'
+                  ? 'border-brand-300 bg-brand-50'
                   : 'border-gray-300 hover:border-gray-400'
               )}
               onClick={() => fileInputRef.current?.click()}
@@ -476,7 +476,7 @@ export default function DocumentsPage() {
               />
               {selectedFile ? (
                 <div className="flex flex-col items-center gap-1">
-                  <File className="w-8 h-8 text-blue-500" />
+                  <File className="w-8 h-8 text-brand-500" />
                   <span className="text-sm font-medium text-gray-900">
                     {selectedFile.name}
                   </span>

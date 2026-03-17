@@ -202,7 +202,7 @@ export default function ExpensesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -269,7 +269,7 @@ export default function ExpensesPage() {
                   </div>
                   <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-brand-500 rounded-full"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>

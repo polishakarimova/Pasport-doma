@@ -152,7 +152,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -249,7 +249,7 @@ export default function SettingsPage() {
 
                 {loadingMembers ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600" />
                   </div>
                 ) : members.length === 0 ? (
                   <p className="text-sm text-gray-500 py-2">

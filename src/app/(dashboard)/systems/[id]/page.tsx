@@ -288,7 +288,7 @@ export default function SystemDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -320,7 +320,7 @@ export default function SystemDetailPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-gray-900">{system.name}</h1>
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+              <span className="inline-flex items-center rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700">
                 {SYSTEM_CATEGORY_LABELS[system.category]}
               </span>
               <StatusBadge status={system.status} />

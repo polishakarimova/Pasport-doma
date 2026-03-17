@@ -191,7 +191,7 @@ export default function MastersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -242,7 +242,7 @@ export default function MastersPage() {
                     {master.phone && (
                       <a
                         href={`tel:${master.phone}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 mt-1"
+                        className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 mt-1"
                       >
                         <Phone className="w-3.5 h-3.5" />
                         {master.phone}
@@ -297,7 +297,7 @@ export default function MastersPage() {
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     {isLoadingLogs ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600" />
                       </div>
                     ) : !logs || logs.length === 0 ? (
                       <p className="text-sm text-gray-400 text-center py-3">

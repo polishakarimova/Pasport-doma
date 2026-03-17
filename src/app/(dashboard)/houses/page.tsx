@@ -81,7 +81,7 @@ export default function HousesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
       </div>
     )
   }
@@ -123,8 +123,8 @@ export default function HousesPage() {
               className="card p-5 cursor-pointer hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <Home className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+                  <Home className="w-5 h-5 text-brand-600" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-gray-900 truncate">{house.name}</h3>
