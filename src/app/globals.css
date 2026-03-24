@@ -67,12 +67,12 @@
 .dark .border-gray-200 { border-color: #3D3530; }
 .dark .border-gray-100 { border-color: #352F2A; }
 .dark .border-gray-300 { border-color: #4A413A; }
-.dark .border-t { border-color: #3D3530; }
+/* .border-t without explicit color inherits from border-color, handled by border-gray-* overrides */
 
 /* Divide overrides */
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #352F2A; }
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #3D3530; }
-.dark .divide-x > :not([hidden]) ~ :not([hidden]) { border-color: #3D3530; }
+/* divide-x handled by border-color inheritance from divide-gray-* overrides */
 
 /* Hover backgrounds */
 .dark .hover\:bg-gray-50:hover { background-color: #2C2420; }
