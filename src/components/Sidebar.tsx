@@ -56,20 +56,20 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile top header — minimal */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#FDFAF5] dark:bg-[#1A1612] px-4 py-3 border-b border-gray-200">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-white dark:bg-gray-900 px-4 py-3 border-b border-gray-200 safe-top">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
             <Home className="w-4 h-4 text-white" />
           </div>
-          <span className="text-base font-semibold text-gray-900">Паспорт дома</span>
+          <span className="text-base font-semibold text-gray-900 dark:text-white">Паспорт дома</span>
         </div>
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
         >
           {theme === 'dark' ? (
-            <Sun className="w-5 h-5 text-brand-500" />
+            <Sun className="w-5 h-5 text-blue-500" />
           ) : (
             <Moon className="w-5 h-5 text-gray-500" />
           )}
@@ -81,7 +81,7 @@ export default function Sidebar() {
         {/* Logo + theme toggle */}
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
               <Home className="w-4 h-4 text-white" />
             </div>
             <span className="text-lg font-semibold text-gray-900">Паспорт дома</span>
@@ -111,7 +111,7 @@ export default function Sidebar() {
                 className={cn(
                   'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand-50 text-brand-700'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 )}
               >
@@ -135,8 +135,8 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile bottom tab bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200">
-        <nav className="flex items-stretch justify-around h-16 safe-bottom">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 safe-bottom">
+        <nav className="flex items-stretch justify-around h-16">
           {bottomTabs.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + '/')
@@ -147,7 +147,7 @@ export default function Sidebar() {
                 className={cn(
                   'flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium transition-colors',
                   isActive
-                    ? 'text-brand-600'
+                    ? 'text-blue-600'
                     : 'text-gray-400'
                 )}
               >
