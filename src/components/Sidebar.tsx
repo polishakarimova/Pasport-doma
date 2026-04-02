@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Sun,
   Moon,
+  UserCircle,
 } from 'lucide-react'
 import { createClient, isDemo } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -26,16 +27,17 @@ const navigation = [
   { name: 'Мастера', shortName: 'Мастера', href: '/masters', icon: Users },
   { name: 'Расходы', shortName: 'Расходы', href: '/expenses', icon: Receipt },
   { name: 'Документы', shortName: 'Докум.', href: '/documents', icon: FileText },
+  { name: 'Личный кабинет', shortName: 'Профиль', href: '/profile', icon: UserCircle },
   { name: 'Настройки', shortName: 'Настр.', href: '/settings', icon: Settings },
 ]
 
-// Bottom tab bar items: Дом / Журнал / Мастера / Расходы / Настройки
+// Bottom tab bar items: Дом / Журнал / Мастера / Расходы / Профиль
 const bottomTabs = [
   navigation[0], // Дом
   navigation[1], // Журнал
   navigation[3], // Мастера
   navigation[4], // Расходы
-  navigation[6], // Настройки
+  navigation[6], // Профиль
 ]
 
 export default function Sidebar() {
