@@ -1,13 +1,10 @@
-// Static params for build
+import { DEMO_HOUSES } from '@/lib/demo-data'
+import HouseDetail from './HouseDetail'
+
 export function generateStaticParams() {
-  return [
-    { id: 'demo-1' },
-    { id: 'demo-2' },
-  ]
+  return DEMO_HOUSES.map((h) => ({ id: h.id }))
 }
 
-import HouseDetailClient from './client'
-
 export default function HouseDetailPage() {
-  return <HouseDetailClient />
+  return <HouseDetail />
 }
