@@ -12,34 +12,9 @@
   }
 }
 
-/* Safe area padding for mobile devices */
+/* Safe area padding for bottom tab bar on iPhones with notch */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-.safe-left {
-  padding-left: env(safe-area-inset-left, 0px);
-}
-
-.safe-right {
-  padding-right: env(safe-area-inset-right, 0px);
-}
-
-/* Better mobile scrolling */
-@media (max-width: 768px) {
-  body {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: hidden;
-  }
-  
-  /* Touch targets should be at least 44px */
-  button, [role="button"], input, select, textarea {
-    min-height: 44px;
-  }
 }
 
 @layer components {
